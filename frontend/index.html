@@ -454,7 +454,7 @@
         .backend-status-detail strong { color: var(--text-main); }
 
         .meal-grade {
-            font-size: clamp(42px,5.5vh,52px); font-weight: 700; line-height: 1;
+            font-size: clamp(38px,5vh,48px); font-weight: 700; line-height: 1;
             opacity: 0; transition: opacity 0.6s cubic-bezier(0.4,0,0.2,1), color 0.6s cubic-bezier(0.4,0,0.2,1);
         }
         .meal-grade.visible { opacity: 1; }
@@ -466,8 +466,8 @@
             justify-content: center;
             flex: 1;
             min-height: 0;
-            gap: clamp(16px,2vh,24px);
-            padding: clamp(10px,1.5vh,18px) 0;
+            gap: clamp(12px,1.6vh,18px);
+            padding: clamp(8px,1.2vh,14px) 0;
         }
         .score-gauge {
             --gauge-pct: 0;
@@ -685,10 +685,10 @@
                 </div>
 
                 <div class="score-gauge-wrap">
-                    <canvas id="gaugeCanvas" style="width:100%;max-width:320px;display:block;margin:0 auto;"></canvas>
-                    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:10px;flex-wrap:wrap;">
-                        <div class="meal-grade text-dim" id="mealGrade" style="font-size:clamp(42px,5.5vh,52px);font-weight:700;line-height:1;opacity:0;transition:opacity 0.6s ease,color 0.6s ease;">—</div>
-                        <div class="text-dim" style="font-size:14px;letter-spacing:0.8px;white-space:nowrap;">NUTRITION SCORE</div>
+                    <canvas id="gaugeCanvas" style="width:100%;max-width:280px;display:block;margin:0 auto;"></canvas>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:12px;">
+                        <div class="meal-grade text-dim" id="mealGrade" style="font-size:clamp(38px,5vh,48px);font-weight:700;line-height:1;opacity:0;transition:opacity 0.6s ease,color 0.6s ease;">—</div>
+                        <div class="text-dim" style="font-size:13px;letter-spacing:0.8px;text-transform:uppercase;">Nutrition<br>Score</div>
                     </div>
                     <div class="score-gauge-scale">
                         <div><span class="text-red">0</span> POOR</div>
@@ -697,7 +697,7 @@
                     </div>
                 </div>
 
-                <div class="flex-between text-dim" style="font-size:clamp(13px,1.5vh,15px);margin-top:auto;">
+                <div class="flex-between text-dim" style="font-size:clamp(12px,1.4vh,14px);margin-top:auto;padding:0 4px;">
                     <div><span class="text-red">|</span> POOR &lt;40</div>
                     <div><span class="text-yellow">|</span> FAIR 40-70</div>
                     <div><span class="text-green">|</span> GOOD &gt;70</div>
@@ -1189,8 +1189,8 @@
         const canvas = document.getElementById('gaugeCanvas');
         if (!canvas) return;
         const dpr = window.devicePixelRatio || 1;
-        const W   = canvas.offsetWidth  || 320;
-        const H   = Math.round(W * 0.5); // adjusted height
+        const W   = canvas.offsetWidth  || 280;
+        const H   = Math.round(W * 0.52);
         canvas.width  = W * dpr;
         canvas.height = H * dpr;
         canvas.style.height = H + 'px';
@@ -1199,8 +1199,8 @@
         c.clearRect(0, 0, W, H);
 
         const cx = W / 2;
-        const cy = H - 5;
-        const R  = Math.min(cx - 15, cy - 5);
+        const cy = H - 8;
+        const R  = Math.min(cx - 18, cy - 8);
         const r  = R * 0.68;
         const pct   = Math.max(0, Math.min(100, score)) / 100;
         const sweepEnd = Math.PI + pct * Math.PI;
@@ -1208,7 +1208,6 @@
         const style = getComputedStyle(document.documentElement);
         const trackColor = style.getPropertyValue('--track-bg').trim() || '#e4e4e0';
         const resolvedColor = _resolveColor(color);
-        const whiteColor = style.getPropertyValue('--white').trim() || '#1a1a18';
 
         // Outer border ring
         c.beginPath();
@@ -1245,30 +1244,15 @@
             c.globalAlpha = 1;
         }
 
-        // Center dot (no needle)
-        c.beginPath();
-        c.arc(cx, cy, 6, 0, Math.PI * 2);
-        c.fillStyle = resolvedColor;
-        c.shadowColor = resolvedColor;
-        c.shadowBlur = 8;
-        c.fill();
-        c.shadowBlur = 0;
-        
-        c.beginPath();
-        c.arc(cx, cy, 6, 0, Math.PI * 2);
-        c.strokeStyle = whiteColor;
-        c.lineWidth = 2;
-        c.stroke();
-
-        // Percentage display inside the center of the curve
+        // Percentage display inside the center - using gauge color
         if (score > 0) {
-            c.font = 'bold 42px monospace';
-            c.fillStyle = whiteColor;
+            c.font = 'bold 44px monospace';
+            c.fillStyle = resolvedColor; // Use the gauge color instead of white
             c.textAlign = 'center';
             c.textBaseline = 'middle';
-            c.shadowColor = 'rgba(0,0,0,0.7)';
-            c.shadowBlur = 10;
-            c.fillText(Math.round(score) + '%', cx, cy - R * 0.35);
+            c.shadowColor = 'rgba(0,0,0,0.8)';
+            c.shadowBlur = 12;
+            c.fillText(Math.round(score) + '%', cx, cy - R * 0.38);
             c.shadowBlur = 0;
         }
     }
