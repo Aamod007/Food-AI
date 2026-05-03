@@ -1190,7 +1190,7 @@
         if (!canvas) return;
         const dpr = window.devicePixelRatio || 1;
         const W   = canvas.offsetWidth  || 260;
-        const H   = Math.round(W * 0.6); // taller for labels
+        const H   = Math.round(W * 0.55);
         canvas.width  = W * dpr;
         canvas.height = H * dpr;
         canvas.style.height = H + 'px';
@@ -1199,93 +1199,55 @@
         c.clearRect(0, 0, W, H);
 
         const cx = W / 2;
-        const cy = H - 20;          // pivot at bottom-center with margin for labels
-        const R  = Math.min(cx - 20, cy - 10);  // outer radius
-        const r  = R * 0.65;        // inner radius (donut thickness)
-        const START = Math.PI;      // 180° — left
-        const END   = 0;            // 0°  — right
+        const cy = H - 10;
+        const R  = Math.min(cx - 12, cy - 8);
+        const r  = R * 0.70;
         const pct   = Math.max(0, Math.min(100, score)) / 100;
-        const sweepEnd = Math.PI + pct * Math.PI; // from left, sweep clockwise
+        const sweepEnd = Math.PI + pct * Math.PI;
 
         const style = getComputedStyle(document.documentElement);
         const trackColor = style.getPropertyValue('--track-bg').trim() || '#e4e4e0';
         const resolvedColor = _resolveColor(color);
-        const textColor = style.getPropertyValue('--text-dim').trim() || '#909088';
         const whiteColor = style.getPropertyValue('--white').trim() || '#1a1a18';
 
-        // Draw colored segments (red, yellow, green)
-        const segments = [
-            { start: 0, end: 0.4, color: style.getPropertyValue('--red').trim() || '#b03030' },
-            { start: 0.4, end: 0.7, color: style.getPropertyValue('--yellow').trim() || '#a07800' },
-            { start: 0.7, end: 1.0, color: style.getPropertyValue('--green').trim() || '#2d7a2d' }
-        ];
+        // Outer border ring
+        c.beginPath();
+        c.arc(cx, cy, R + 3, Math.PI, 0, false);
+        c.arc(cx, cy, R + 1, 0, Math.PI, true);
+        c.closePath();
+        c.fillStyle = 'rgba(255,255,255,0.15)';
+        c.fill();
 
-        segments.forEach(seg => {
-            const startAngle = Math.PI + seg.start * Math.PI;
-            const endAngle = Math.PI + seg.end * Math.PI;
-            c.beginPath();
-            c.arc(cx, cy, R, startAngle, endAngle, false);
-            c.arc(cx, cy, r, endAngle, startAngle, true);
-            c.closePath();
-            c.fillStyle = seg.color;
-            c.globalAlpha = 0.25;
-            c.fill();
-            c.globalAlpha = 1;
-        });
+        // Track (full arc background - dark)
+        c.beginPath();
+        c.arc(cx, cy, R, Math.PI, 0, false);
+        c.arc(cx, cy, r, 0, Math.PI, true);
+        c.closePath();
+        c.fillStyle = trackColor;
+        c.globalAlpha = 0.3;
+        c.fill();
+        c.globalAlpha = 1;
 
-        // Filled arc (score portion - brighter)
+        // Filled arc (score portion - bright)
         if (pct > 0) {
             c.beginPath();
             c.arc(cx, cy, R, Math.PI, sweepEnd, false);
             c.arc(cx, cy, r, sweepEnd, Math.PI, true);
             c.closePath();
-            c.fillStyle = resolvedColor;
-            c.globalAlpha = 0.95;
+            
+            // Gradient fill
+            const gradient = c.createLinearGradient(cx - R, cy, cx + R, cy);
+            gradient.addColorStop(0, resolvedColor);
+            gradient.addColorStop(1, resolvedColor);
+            c.fillStyle = gradient;
+            c.globalAlpha = 0.9;
             c.fill();
             c.globalAlpha = 1;
         }
 
-        // Draw tick marks
-        const tickCount = 11; // 0, 10, 20, ..., 100
-        c.strokeStyle = textColor;
-        c.lineWidth = 1.5;
-        for (let i = 0; i < tickCount; i++) {
-            const tickPct = i / (tickCount - 1);
-            const angle = Math.PI + tickPct * Math.PI;
-            const isMajor = i % 2 === 0; // major ticks at 0, 20, 40, 60, 80, 100
-            const tickStart = isMajor ? R + 2 : R + 4;
-            const tickEnd = isMajor ? R + 10 : R + 7;
-            
-            const x1 = cx + Math.cos(angle) * tickStart;
-            const y1 = cy + Math.sin(angle) * tickStart;
-            const x2 = cx + Math.cos(angle) * tickEnd;
-            const y2 = cy + Math.sin(angle) * tickEnd;
-            
-            c.beginPath();
-            c.moveTo(x1, y1);
-            c.lineTo(x2, y2);
-            c.stroke();
-        }
-
-        // Draw percentage labels
-        c.font = 'bold 9px monospace';
-        c.fillStyle = textColor;
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        
-        const labels = [0, 20, 40, 60, 80, 100];
-        labels.forEach(val => {
-            const labelPct = val / 100;
-            const angle = Math.PI + labelPct * Math.PI;
-            const labelR = R + 18;
-            const lx = cx + Math.cos(angle) * labelR;
-            const ly = cy + Math.sin(angle) * labelR;
-            c.fillText(val.toString(), lx, ly);
-        });
-
         // Needle
         const needleAngle = Math.PI + pct * Math.PI;
-        const needleLen   = R - 2;
+        const needleLen   = R - 4;
         const nx = cx + Math.cos(needleAngle) * needleLen;
         const ny = cy + Math.sin(needleAngle) * needleLen;
         
@@ -1293,8 +1255,8 @@
         c.beginPath();
         c.moveTo(cx, cy);
         c.lineTo(nx + 2, ny + 2);
-        c.strokeStyle = 'rgba(0,0,0,0.2)';
-        c.lineWidth   = 3;
+        c.strokeStyle = 'rgba(0,0,0,0.3)';
+        c.lineWidth   = 4;
         c.lineCap     = 'round';
         c.stroke();
         
@@ -1303,25 +1265,42 @@
         c.moveTo(cx, cy);
         c.lineTo(nx, ny);
         c.strokeStyle = whiteColor;
-        c.lineWidth   = 3;
+        c.lineWidth   = 3.5;
         c.lineCap     = 'round';
         c.stroke();
 
-        // Pivot dot with border
+        // Pivot dot with glow
         c.beginPath();
-        c.arc(cx, cy, 7, 0, Math.PI * 2);
+        c.arc(cx, cy, 8, 0, Math.PI * 2);
         c.fillStyle = resolvedColor;
+        c.shadowColor = resolvedColor;
+        c.shadowBlur = 10;
         c.fill();
+        c.shadowBlur = 0;
+        
+        c.beginPath();
+        c.arc(cx, cy, 8, 0, Math.PI * 2);
         c.strokeStyle = whiteColor;
-        c.lineWidth = 2;
+        c.lineWidth = 2.5;
         c.stroke();
 
-        // Center percentage display
-        c.font = 'bold 16px monospace';
-        c.fillStyle = whiteColor;
-        c.textAlign = 'center';
-        c.textBaseline = 'middle';
-        c.fillText(Math.round(score) + '%', cx, cy - R * 0.35);
+        // Percentage display inside the bar - positioned along the arc
+        if (score > 0) {
+            // Calculate position on the arc (midpoint of filled portion)
+            const textAngle = Math.PI + (pct / 2) * Math.PI;
+            const textRadius = (R + r) / 2; // middle of the bar
+            const textX = cx + Math.cos(textAngle) * textRadius;
+            const textY = cy + Math.sin(textAngle) * textRadius;
+            
+            c.font = 'bold 28px monospace';
+            c.fillStyle = whiteColor;
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.shadowColor = 'rgba(0,0,0,0.6)';
+            c.shadowBlur = 6;
+            c.fillText(Math.round(score) + '%', textX, textY);
+            c.shadowBlur = 0;
+        }
     }
 
     function animateGaugeTo(targetScore, colorVar) {
