@@ -12,16 +12,19 @@ from difflib import SequenceMatcher, get_close_matches
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
 from myth.food_model import FoodImageClassifier
 
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parent.parent.parent
 PORT = 8000
 HOST = "127.0.0.1"
-FRONTEND_FILE = ROOT / "test.html"
+FRONTEND_FILE = ROOT / "frontend" / "index.html"
 
-FOOD101_INGREDIENTS = ROOT / "converted_ingredients_grams.csv"   # grams already converted
-FOOD101_MACROS      = ROOT / "food101_ingredient_macros.csv"
+FOOD101_INGREDIENTS = ROOT / "data" / "processed" / "converted_ingredients_grams.csv"
+FOOD101_MACROS = ROOT / "data" / "raw" / "food101_ingredient_macros.csv"
 
 DESCRIPTORS = {
     "sliced", "diced", "chopped", "minced", "fresh", "frozen", "canned", "dried",
